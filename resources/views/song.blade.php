@@ -5,7 +5,9 @@
 
     <h2 class="font-bold text-lg">{{ $song->name }}</h2>
     <p>
-        This song genre is {{ $song->genre->name }} and artist is {{ $song->artist }} and duration is {{ $song->duration }} seconds.
+        This song genre is {{ $song->genre->name }} 
+        artist is {{ $song->artist }}
+        duration is {{ \Carbon\CarbonInterval::seconds($song->duration)->cascade()->forHumans(['short' => true]) }}.
     </p>
 
     <!-- Voeg toe aan playlist button -->

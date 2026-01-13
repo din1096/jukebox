@@ -20,7 +20,7 @@
                     <a href="/songs/{{ $song->id }}" class="text-blue-500 hover:underline">
                         {{ $song->name }}
                     </a>
-                    <span class="text-gray-600 ml-2">({{ $song->duration }} sec)</span>
+                    <span class="text-gray-600 ml-2">({{\Carbon\CarbonInterval::seconds($song->duration)->cascade()->forHumans(['short' => true]) }})</span>  
 
                     <form action="{{ route('playlist.remove', $song->id) }}" method="POST" class="inline">
                         @csrf
