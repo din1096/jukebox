@@ -2,48 +2,31 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\SavedPlaylist;
 use App\Models\Song;
-use App\Services\Playlist;
-use Illuminate\Support\Facades\Auth;
+use App\Services\SavedPlaylist;
+use Illuminate\Support\Facades\Auth; 
 
 class SavedPlaylistController extends Controller
 {
-    protected $playlist;
+    protected SavedPlaylist $savedPlaylists;
 
-    public function __construct(Playlist $playlist)
+    public function __construct(SavedPlaylist $savedPlaylists)
     {
-        $this->playlist = $playlist;
+        $this->savedPlaylists = $savedPlaylists;
     }
 
     // Pagina met alle opgeslagen playlists
     public function index()
     {
-        $lists = Auth::user()->savedPlaylists()->latest()->get();
-
+        $lists = $this->savedPlaylists->listForCurrentUser();
         return view('saved_playlist', compact('lists'));
     }
 
     // Laad een opgeslagen playlist en zet songs in session
     public function load($id)
     {
-        $saved = SavedPlaylist::findOrFail($id);
-
-        if ($saved->user_id !== Auth::id()) {
-            abort(403);
-        }
-
-        // Laad songs als collectie
-        $songs = Song::whereIn('id', $saved->songs)->get();
-
-        // Zet in session voor Blade
-        session([
-            'loadedPlaylist' => [
-                'id' => $saved->id,
-                'name' => $saved->name,
-                'songs' => $songs
-            ]
-        ]);
+        $saved = $this->savedPlaylists->loadIntoSession((int) $id);
+        $this->savedPlaylists->syncLoadedPlaylistSession($saved);
 
         return redirect()->route('saved.playlists.index')
             ->with('success', "Playlist {$saved->name} is geladen!");
@@ -52,13 +35,7 @@ class SavedPlaylistController extends Controller
     // Verwijder opgeslagen playlist
     public function destroy($id)
     {
-        $saved = SavedPlaylist::findOrFail($id);
-
-        if ($saved->user_id !== Auth::id()) {
-            abort(403);
-        }
-
-        $saved->delete();
+        $this->savedPlaylists->delete((int) $id);
 
         return redirect()->back()->with('success', 'Playlist verwijderd!');
     }
@@ -69,14 +46,7 @@ class SavedPlaylistController extends Controller
             'name' => 'required|string|max:255'
         ]);
 
-        $playlist = SavedPlaylist::findOrFail($id);
-
-        if ($playlist->user_id !== auth()->id()) {
-            abort(403);
-        }
-
-        $playlist->name = $request->name;
-        $playlist->save();
+        $playlist = $this->savedPlaylists->rename((int) $id, $request->name);
 
         return redirect()->back()->with('success', 'Playlist naam is gewijzigd!');
 }
@@ -87,15 +57,7 @@ class SavedPlaylistController extends Controller
             'song_id' => 'required|integer|exists:songs,id'
         ]);
 
-        $playlist = SavedPlaylist::findOrFail($id);
-        if ($playlist->user_id !== Auth::id()) abort(403);
-
-        $songs = is_array($playlist->songs) ? $playlist->songs : [];
-        if (!in_array($request->song_id, $songs)) {
-            $songs[] = (int)$request->song_id;
-            $playlist->songs = $songs;
-            $playlist->save();
-        }
+        $playlist = $this->savedPlaylists->addSongToSaved((int) $id, (int) $request->song_id);
 
         // update session als deze playlist geladen is
         if (session('loadedPlaylist.id') === $playlist->id) {
@@ -108,14 +70,7 @@ class SavedPlaylistController extends Controller
     // Verwijder een song uit opgeslagen playlist
     public function removeSong($playlistId, $songId)
     {
-        $playlist = SavedPlaylist::findOrFail($playlistId);
-        if ($playlist->user_id !== Auth::id()) abort(403);
-
-        $songs = is_array($playlist->songs) ? $playlist->songs : [];
-        $songs = array_values(array_filter($songs, fn($id) => (int)$id !== (int)$songId));
-
-        $playlist->songs = $songs;
-        $playlist->save();
+        $playlist = $this->savedPlaylists->removeSongFromSaved((int) $playlistId, (int) $songId);
 
         if (session('loadedPlaylist.id') === $playlist->id) {
             session(['loadedPlaylist.songs' => Song::whereIn('id', $playlist->songs)->get()]);

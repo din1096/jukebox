@@ -3,22 +3,25 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Services\Playlist;
+use App\Services\SessionPlaylist;
+use App\Services\SavedPlaylist;
 
 class PlaylistController extends Controller
 {
-    protected $playlist;
+    protected SessionPlaylist $sessionPlaylist;
+    protected SavedPlaylist $savedPlaylists;
 
-    public function __construct(Playlist $playlist)
+    public function __construct(SessionPlaylist $sessionPlaylist, SavedPlaylist $savedPlaylists)
     {
-        $this->playlist = $playlist;
+        $this->sessionPlaylist = $sessionPlaylist;
+        $this->savedPlaylists = $savedPlaylists;
     }
 
     // Laat alle songs in de playlist zien met totale duur
     public function index()
     {
-        $songs = $this->playlist->getSongs();
-        $totalTime = $this->playlist->getTotalTime();
+        $songs = $this->sessionPlaylist->getSongs();
+        $totalTime = $this->sessionPlaylist->getTotalTime();
 
         return view('playlist', [
             'songs' => $songs,
@@ -29,40 +32,41 @@ class PlaylistController extends Controller
     // Voeg een song toe aan de playlist
     public function add($id)
     {
-        $this->playlist->addSong($id);
+        $this->sessionPlaylist->addSong((int) $id);
         return redirect()->back()->with('success', 'Song toegevoegd aan playlist!');
     }
 
     // Verwijder een song uit de playlist
     public function remove($id)
     {
-        $this->playlist->removeSong($id);
+        $this->sessionPlaylist->removeSong((int) $id);
         return redirect()->route('playlist.index')->with('success', 'Song verwijderd uit playlist!');
     }
 
-    // Playlist opslaan in database
+    // Playlist opslaan in de database
     public function save(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
         ]);
 
-        $saved = $this->playlist->saveToDatabase($request->name);
+        $songIds = $this->sessionPlaylist->getSongIds();
+        $saved = $this->savedPlaylists->saveCurrentSessionPlaylist($request->name, $songIds);
 
-        return redirect()->back()->with('status', $saved ? 'Playlist opgeslagen!' : 'Er is niets om op te slaan.');
+        return redirect()->back()->with('status', $saved ? 'Playlist opgeslagen!' : 'Er is niets om op te slaan of je bent niet ingelogd.');
     }
 
     // Pagina met opgeslagen playlists
     public function savedIndex()
     {
-        $lists = auth()->user()->savedPlaylists()->latest()->get();
+        $lists = $this->savedPlaylists->listForCurrentUser();
         return view('saved_playlist', compact('lists'));
     }
 
     // Opgeslagen playlist laden
     public function load($id)
     {
-        $loaded = $this->playlist->loadSavedPlaylist((int)$id);
+        $loaded = $this->savedPlaylists->loadIntoSession((int) $id);
 
         return redirect()
             ->route('saved.playlists.index')  
@@ -73,7 +77,7 @@ class PlaylistController extends Controller
     // Verwijder opgeslagen playlist
     public function destroySaved($id)
     {
-        $this->playlist->deleteSavedPlaylist((int)$id);
+        $this->savedPlaylists->delete((int) $id);
         return redirect()->back()->with('status', 'Playlist verwijderd.');
     }
 }

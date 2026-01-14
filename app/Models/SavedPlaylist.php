@@ -16,11 +16,11 @@ class SavedPlaylist extends Model
     ];
 
     public function user()
-    {
-        return $this->belongsTo(\App\Models\User::class);
+    {     
+        return $this->belongsTo(\App\Models\User::class); // user kan meerdere playlist hebben
     }
     public function songs()
-{
+{       
     return $this->belongsToMany(Song::class, 'playlist_song'); 
 }
 }

@@ -18,7 +18,7 @@
                 @method('DELETE')
                 <button class="text-red-600 ml-3">Verwijder</button>
             </form>
-
+            
             <!-- Rename Playlist -->
             <form action="{{ route('saved.playlists.rename', $list->id) }}" method="POST" class="mt-2">
                 @csrf
@@ -45,7 +45,7 @@
                     <a href="{{ route('songs.show', $song->id) }}" class="text-blue-500 hover:underline">
                         {{ $song->name }}
                     </a>
-                    <span class="text-gray-600 ml-1">({{ $song->duration }} sec)</span>
+                    <span class="text-gray-600 ml-1">({{\Carbon\CarbonInterval::seconds($song->duration)->cascade()->forHumans(['short' => true]) }})</span>
 
                     <!-- delete song from playlist -->
                     @if(isset($loadedPlaylist['id']))

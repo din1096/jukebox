@@ -11,7 +11,7 @@
 
     @if($songs->count())
         <p class="mb-4 font-semibold">
-            Totale duur: {{ $totalTime }} 
+            {{ $totalTime }} 
         </p>
 
         <ul>
