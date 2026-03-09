@@ -6,7 +6,7 @@
     <h2 class="font-bold text-lg">{{ $song->name }}</h2>
     <p>
         This song genre is {{ $song->genre->name }} 
-        artist is {{ $song->artist }}
+        artist is called {{ $song->artist }}
         duration is {{ \Carbon\CarbonInterval::seconds($song->duration)->cascade()->forHumans(['short' => true]) }}.
     </p>
 
