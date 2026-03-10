@@ -20,14 +20,8 @@
             </form>
             
             <!-- Rename Playlist -->
-            <button
-                type="button"
-                class="bg-blue-500 text-white px-2 py-1 rounded ml-2 mt-2"
-                onclick="toggleRenameForm({{ $list->id }})"
-            >
-                Rename
-            </button>
-
+             <button type="button"class="bg-blue-500 text-white px-2 py-1 rounded ml-2 mt-2"onclick="toggleRenameForm({{ $list->id }})">
+                Rename</button>
             <form
                 id="rename-form-{{ $list->id }}"
                 action="{{ route('saved.playlists.rename', $list->id) }}"
@@ -41,7 +35,7 @@
                 <button type="submit" class="bg-blue-500 text-white px-2 py-1 rounded ml-2">Save</button>
                 <button
                     type="button"
-                    class="text-gray-600 px-2 py-1 rounded ml-2"
+                    class="text-red-600 px-2 py-1 rounded ml-2"
                     onclick="toggleRenameForm({{ $list->id }})"
                 >
                     Cancel
@@ -116,4 +110,4 @@
             form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
         }
     </script>
-</x-layout>
+</x-layout> 
