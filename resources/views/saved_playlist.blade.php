@@ -20,11 +20,32 @@
             </form>
             
             <!-- Rename Playlist -->
-            <form action="{{ route('saved.playlists.rename', $list->id) }}" method="POST" class="mt-2">
+            <button
+                type="button"
+                class="bg-blue-500 text-white px-2 py-1 rounded ml-2 mt-2"
+                onclick="toggleRenameForm({{ $list->id }})"
+            >
+                Rename
+            </button>
+
+            <form
+                id="rename-form-{{ $list->id }}"
+                action="{{ route('saved.playlists.rename', $list->id) }}"
+                method="POST"
+                class="mt-2"
+                style="display:none;"
+            >
                 @csrf
                 @method('PATCH')
                 <input type="text" name="name" value="{{ $list->name }}" class="border p-1" required>
-                <button class="bg-blue-500 text-white px-2 py-1 rounded ml-2">Rename</button>
+                <button type="submit" class="bg-blue-500 text-white px-2 py-1 rounded ml-2">Save</button>
+                <button
+                    type="button"
+                    class="text-gray-600 px-2 py-1 rounded ml-2"
+                    onclick="toggleRenameForm({{ $list->id }})"
+                >
+                    Cancel
+                </button>
             </form>
         </div>
     @endforeach
@@ -87,4 +108,12 @@
             </p>
         @endif
     @endif
+
+    <script>
+        function toggleRenameForm(id) {
+            const form = document.getElementById('rename-form-' + id);
+            if (!form) return;
+            form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
+        }
+    </script>
 </x-layout>
