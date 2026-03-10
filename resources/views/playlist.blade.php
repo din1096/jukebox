@@ -10,17 +10,15 @@
     @endif
 
     @if($songs->count())
-        <p class="mb-4 font-semibold">
-            {{ $totalTime }} 
-        </p>
-
         <ul>
             @foreach($songs as $song)
                 <li class="mb-2">
                     <a href="/songs/{{ $song->id }}" class="text-blue-500 hover:underline">
                         {{ $song->name }}
                     </a>
-                    <span class="text-gray-600 ml-2">({{\Carbon\CarbonInterval::seconds($song->duration)->cascade()->forHumans(['short' => true]) }})</span>  
+                    <span class="text-gray-600 ml-2">
+                        ({{ \Carbon\CarbonInterval::seconds($song->duration)->cascade()->forHumans(['short' => true]) }})
+                    </span>  
 
                     <form action="{{ route('playlist.remove', $song->id) }}" method="POST" class="inline">
                         @csrf
@@ -29,6 +27,18 @@
                 </li>
             @endforeach
         </ul>
+
+        <form method="GET" action="{{ route('playlist.index') }}" class="mt-4">
+            <button type="submit" name="show_total" value="1" class="text-red-500 hover:underline">
+            Total Time
+            </button>
+        </form>
+
+        @if(request('show_total'))
+            <p class="mt-2 font-semibold">
+                {{ $totalTime }}
+            </p>
+        @endif
 
         @auth
             <form action="{{ route('playlist.save') }}" method="POST" class="mt-4">
@@ -39,7 +49,6 @@
                 </button>
             </form>
         @endauth
-
     @else
         <p>Je playlist is leeg.</p>
     @endif

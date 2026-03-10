@@ -29,7 +29,6 @@
         </div>
     @endforeach
 
-    
     @if(session('loadedPlaylist'))
         @php $loadedPlaylist = session('loadedPlaylist'); @endphp
 
@@ -70,6 +69,22 @@
                 </select>
                 <button type="submit" class="bg-blue-500 text-white px-2 py-1 rounded ml-2">add song</button>
             </form>
+        @endif
+        <!-- bereken total time of playlist -->
+        <form method="GET" action="{{ route('saved.playlists.index') }}" class="mt-4">
+            <button type="submit" name="show_total" value="1" class="text-red-500 hover:underline">
+                Total Time
+            </button>
+        </form>
+
+        @if(request('show_total'))
+            @php
+                $totalSeconds = collect($loadedPlaylist['songs'])->sum('duration');
+                $totalTime = \Carbon\CarbonInterval::seconds($totalSeconds)->cascade()->forHumans(['short' => true]);
+            @endphp
+            <p class="mt-2 font-semibold">
+                {{ $totalTime }}
+            </p>
         @endif
     @endif
 </x-layout>
